@@ -10,6 +10,12 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class DatabaseUtil {
+	
+	private static String getEnvironmentVariableOrDefault(String envVar, String defaultValue) {
+        String value = System.getenv(envVar);
+        return value != null && !value.isEmpty() ? value : defaultValue;
+    }
+	
 	private static Properties loadProperties() throws IOException {
         Properties props = new Properties();
         try (InputStream input = DatabaseUtil.class.getClassLoader().getResourceAsStream("db.properties")) {
@@ -23,10 +29,12 @@ public class DatabaseUtil {
 
     public static Connection getConnection() throws IOException, SQLException, ClassNotFoundException {
         Properties props = loadProperties();
-        String url = props.getProperty("db.url");
-        String username = props.getProperty("db.username");
-        String password = props.getProperty("db.password");
-        String driver = props.getProperty("db.driver");
+        
+     // Retrieve database configuration from environment variables
+        String url = getEnvironmentVariableOrDefault("DB_URL", props.getProperty("db.url"));
+        String username = getEnvironmentVariableOrDefault("DB_USERNAME", props.getProperty("db.username"));
+        String password = getEnvironmentVariableOrDefault("DB_PASSWORD", props.getProperty("db.password"));
+        String driver = getEnvironmentVariableOrDefault("DB_DRIVER", props.getProperty("db.driver"));
 
         Class.forName(driver); // Load the MySQL driver
         return DriverManager.getConnection(url, username, password);
